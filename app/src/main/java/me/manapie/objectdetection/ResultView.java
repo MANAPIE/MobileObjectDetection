@@ -13,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ public class ResultView extends View {
     }
 
     public void setResults(ArrayList<Result> results) {
+        Log.e("Object Detection", String.valueOf(results));
         mResults = results;
     }
 }
