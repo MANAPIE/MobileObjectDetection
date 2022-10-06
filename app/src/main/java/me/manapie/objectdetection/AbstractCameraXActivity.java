@@ -1,9 +1,3 @@
-// Copyright (c) 2020 Facebook, Inc. and its affiliates.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree.
-
 package me.manapie.objectdetection;
 
 import android.Manifest;
@@ -26,6 +20,10 @@ import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 
 public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
+    private static final int NEXT_FRAME_IN_MS = 100;
+    private static final int TARGET_RESOLUTION_WIDTH = 480;
+    private static final int TARGET_RESOLUTION_HEIGHT = 640;
+
     private static final int REQUEST_CODE_CAMERA_PERMISSION = 200;
     private static final String[] PERMISSIONS = {Manifest.permission.CAMERA};
 
@@ -77,13 +75,14 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
 
         final ImageAnalysisConfig imageAnalysisConfig =
             new ImageAnalysisConfig.Builder()
-                .setTargetResolution(new Size(480, 640))
+                .setTargetResolution(new Size(TARGET_RESOLUTION_WIDTH, TARGET_RESOLUTION_HEIGHT))
                 .setCallbackHandler(mBackgroundHandler)
                 .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
                 .build();
         final ImageAnalysis imageAnalysis = new ImageAnalysis(imageAnalysisConfig);
+
         imageAnalysis.setAnalyzer((image, rotationDegrees) -> {
-            if (SystemClock.elapsedRealtime() - mLastAnalysisResultTime < 500) {
+            if (SystemClock.elapsedRealtime() - mLastAnalysisResultTime < NEXT_FRAME_IN_MS) {
                 return;
             }
 

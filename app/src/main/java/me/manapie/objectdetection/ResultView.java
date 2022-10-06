@@ -66,7 +66,6 @@ public class ResultView extends View {
     }
 
     public void setResults(ArrayList<Result> results) {
-        Log.e("Object Detection", String.valueOf(results));
         mResults = results;
     }
 }

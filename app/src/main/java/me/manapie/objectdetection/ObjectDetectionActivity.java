@@ -16,6 +16,8 @@ import android.view.ViewStub;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.camera.core.ImageProxy;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.pytorch.IValue;
 import org.pytorch.LiteModuleLoader;
@@ -38,15 +40,14 @@ import java.util.List;
 public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetectionActivity.AnalysisResult> {
     private Module mModule = null;
     private ResultView mResultView;
-
-    private Bitmap mBitmap = null;
-    private float mImgScaleX, mImgScaleY, mIvScaleX, mIvScaleY, mStartX, mStartY;
+    private RecyclerView mListView;
+    private ListAdapter mListViewAdapter;
+    private ArrayList mObjectList;
 
     static class AnalysisResult {
         private final ArrayList<Result> mResults;
 
         public AnalysisResult(ArrayList<Result> results) {
-            Log.e("Object Detection", String.valueOf(results));
             mResults = results;
         }
     }
@@ -74,6 +75,11 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mListView = (RecyclerView) findViewById(R.id.listView);
+        mListViewAdapter = new ListAdapter();
+        mListView.setAdapter(mListViewAdapter);
+        mListView.setLayoutManager(new LinearLayoutManager(this));
 
         try {
             mModule = LiteModuleLoader.load(assetFilePath(getApplicationContext(), "yolov5s.torchscript.ptl"));
@@ -106,6 +112,16 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     @Override
     protected void applyToUiAnalyzeImageResult(AnalysisResult result) {
+        mObjectList = new ArrayList<>();
+
+        for (Result r : result.mResults) {
+            mObjectList.add(new ObjectItem(
+                    String.format("%s", PrePostProcessor.mClasses[r.classIndex]),
+                    String.format("score: %.2f / top: %d / left: %d", r.score, r.rect.top, r.rect.left)
+            ));
+        }
+        mListViewAdapter.setObjectList(mObjectList);
+
         mResultView.setResults(result.mResults);
         mResultView.invalidate();
     }
