@@ -34,8 +34,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetectionActivity.AnalysisResult> {
     private Module mModule = null;
@@ -82,7 +87,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         mListView.setLayoutManager(new LinearLayoutManager(this));
 
         try {
-            mModule = LiteModuleLoader.load(assetFilePath(getApplicationContext(), "yolov5s.torchscript.ptl"));
+            mModule = LiteModuleLoader.load(assetFilePath(getApplicationContext(), "yolov5n.torchscript.ptl"));
             BufferedReader br = new BufferedReader(new InputStreamReader(getAssets().open("classes.txt")));
             String line;
             List<String> classes = new ArrayList<>();
@@ -111,13 +116,30 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
     }
 
     @Override
-    protected void applyToUiAnalyzeImageResult(AnalysisResult result) {
+    protected void applyToUiAnalyzeImageResult(AnalysisResult result, long resultTime, long timeGap) {
         mObjectList = new ArrayList<>();
 
+        Date date = new Date(resultTime);
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        String dateFormatted = formatter.format(date);
+
+        mObjectList.add(new ObjectItem(
+                String.format("%s", dateFormatted),
+                String.format("%dms", timeGap)
+        ));
+
+        Map<Integer, Integer> resultCount = new HashMap<Integer, Integer>();
         for (Result r : result.mResults) {
+            if (resultCount.get(r.classIndex) == null) {
+                resultCount.put(r.classIndex, 1);
+            } else {
+                resultCount.put(r.classIndex, resultCount.get(r.classIndex) + 1);
+            }
+        }
+        for (Integer classIndex : resultCount.keySet()) {
             mObjectList.add(new ObjectItem(
-                    String.format("%s", PrePostProcessor.mClasses[r.classIndex]),
-                    String.format("score: %.2f / top: %d / left: %d", r.score, r.rect.top, r.rect.left)
+                    String.format("%s", PrePostProcessor.mClasses[classIndex]),
+                    String.format("count: %d", resultCount.get(classIndex))
             ));
         }
         mListViewAdapter.setObjectList(mObjectList);
@@ -153,14 +175,6 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
     @WorkerThread
     @Nullable
     protected AnalysisResult analyzeImage(ImageProxy image, int rotationDegrees) {
-        try {
-            if (mModule == null) {
-                mModule = LiteModuleLoader.load(assetFilePath(getApplicationContext(), "yolov5s.torchscript.ptl"));
-            }
-        } catch (IOException e) {
-            Log.e("Object Detection", "Error reading assets", e);
-            return null;
-        }
         Bitmap bitmap = imgToBitmap(image.getImage());
         Matrix matrix = new Matrix();
         matrix.postRotate(90.0f);

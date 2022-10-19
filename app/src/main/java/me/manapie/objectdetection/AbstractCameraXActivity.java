@@ -21,6 +21,8 @@ import androidx.core.app.ActivityCompat;
 
 public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
     private static final int NEXT_FRAME_IN_MS = 100;
+//    private static final int TARGET_RESOLUTION_WIDTH = 3840;
+//    private static final int TARGET_RESOLUTION_HEIGHT = 2160;
     private static final int TARGET_RESOLUTION_WIDTH = 480;
     private static final int TARGET_RESOLUTION_HEIGHT = 640;
 
@@ -88,8 +90,10 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
 
             final R result = analyzeImage(image, rotationDegrees);
             if (result != null) {
-                mLastAnalysisResultTime = SystemClock.elapsedRealtime();
-                runOnUiThread(() -> applyToUiAnalyzeImageResult(result));
+                long realTime = SystemClock.elapsedRealtime();
+                long timeGap = realTime - mLastAnalysisResultTime;
+                mLastAnalysisResultTime = realTime;
+                runOnUiThread(() -> applyToUiAnalyzeImageResult(result, System.currentTimeMillis(), timeGap));
             }
         });
 
@@ -101,5 +105,5 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
     protected abstract R analyzeImage(ImageProxy image, int rotationDegrees);
 
     @UiThread
-    protected abstract void applyToUiAnalyzeImageResult(R result);
+    protected abstract void applyToUiAnalyzeImageResult(R result, long resultTime, long timeGap);
 }
