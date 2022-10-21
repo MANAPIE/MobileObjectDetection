@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- pressed -->
+    <item android:drawable="@color/lightgray" android:state_pressed="true" android:radius="7dp" />
+    <!-- focused -->
+    <item android:drawable="@color/black" android:state_activated="true" android:radius="7dp" />
+    <!-- default -->
+    <item android:drawable="@color/gray" android:radius="7dp" />
+</selector>

@@ -17,10 +17,6 @@ public class ObjectItem {
         return objectClass;
     }
 
-    public void setMessage(String value) {
-        this.objectPosition = value;
-    }
-
     public void setName(String value) {
         this.objectClass = value;
     }
